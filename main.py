@@ -140,7 +140,7 @@ def do_fetch(
     total_skipped = 0
 
     for artist in progressbar(artist_data):
-        last_updated = artist.get("externalInfoUpdatedAt", "0001-01-01T00:00:00Z")
+        last_updated = artist.get("externalInfoUpdatedAt", "0001-01-01T00:00:00+00:00")
 
         if force or (now - datetime.fromisoformat(last_updated)).days >= old_days:
             artist_info = session.get(
