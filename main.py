@@ -6,6 +6,7 @@ from sys import stdout
 
 from typing import Any, Dict, Iterator, List, Optional, Tuple, TypeVar
 
+from dateutil.parser import parse
 from requests import Session
 
 
@@ -139,23 +140,34 @@ def do_fetch(
     total_changed = 0
     total_skipped = 0
 
-    for artist in progressbar(artist_data):
-        last_updated = artist.get("externalInfoUpdatedAt", "0001-01-01T00:00:00+00:00")
-
-        if force or (now - datetime.fromisoformat(last_updated)).days >= old_days:
-            artist_info = session.get(
-                f"{server}/rest/getArtistInfo", params={**subsonic, "id": artist["id"]}
+    if len(artist_data) > 0:
+        for artist in progressbar(artist_data):
+            last_updated = artist.get(
+                "externalInfoUpdatedAt", "0001-01-01T00:00:00+00:00"
             )
 
-            if not artist_info.ok:
-                print(f"WARNING: Failed to fetch {artist['name']}: {artist_info.text}")
+            try:
+                navi_date = datetime.fromisoformat(last_updated)
+            except:
+                navi_date = parse(last_updated)
 
-            artist_json = artist_info.json()
+            if force or (now - navi_date).days >= old_days:
+                artist_info = session.get(
+                    f"{server}/rest/getArtistInfo",
+                    params={**subsonic, "id": artist["id"]},
+                )
 
-            new_update = artist_json.get("externalInfoUpdatedAt", last_updated)
-            total_changed += new_update != last_updated
-        else:
-            total_skipped += 1
+                if not artist_info.ok:
+                    print(
+                        f"WARNING: Failed to fetch {artist['name']}: {artist_info.text}"
+                    )
+
+                artist_json = artist_info.json()
+
+                new_update = artist_json.get("externalInfoUpdatedAt", last_updated)
+                total_changed += new_update != last_updated
+            else:
+                total_skipped += 1
 
     print(
         f"Done! {total_skipped} skipped, {total_changed} updated, {len(artist_data) - total_changed - total_skipped} unchanged"

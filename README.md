@@ -5,7 +5,7 @@ of each to populate artist profile pictures and biographies (if they exist).
 
 ## Requirements
 
-This requires one Python package, `requests`. To install everything, you can do `pip install -r requirements.txt`
+Supports Python >= 3.9. This requires two Python package, `requests`, and `python-dateutil` (for Python 3.9). To install everything, you can do `pip install -r requirements.txt`
 
 ## Usage
 
